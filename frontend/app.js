@@ -1,6 +1,6 @@
 
 const state = { currentTable: null, tables: [], currentChart: null, reports: [], activities: [] };
-const API_BASE = 'http://localhost:8080';
+const API_BASE = '';
 const API = {
     uploadFile: `${API_BASE}/read`, buildChart: `${API_BASE}/build`, exportReport: `${API_BASE}/export`,
     getTables: `${API_BASE}/tables`, getTableProfile: (name) => `${API_BASE}/tables/${name}/profile`, getTablePreview: (name, limit = 10) => `${API_BASE}/tables/${name}/preview?limit=${limit}`,
