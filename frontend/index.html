@@ -1,0 +1,108 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudentPlatform - Student Management and Analytics System</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;600&family=Fraunces:wght@600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-header"><div class="logo"><h1>StudentPlatform</h1></div></div>
+    <nav class="nav-menu">
+        <a href="#dashboard" class="nav-item active" data-page="dashboard"><span>Dashboard</span></a>
+        <a href="#import" class="nav-item" data-page="import"><span>Data Import</span></a>
+        <a href="#tables" class="nav-item" data-page="tables"><span>Tables</span></a>
+        <a href="#analytics" class="nav-item" data-page="analytics"><span>Analytics</span></a>
+        <a href="#charts" class="nav-item" data-page="charts"><span>Chart Builder</span></a>
+        <a href="#reports" class="nav-item" data-page="reports"><span>Reports</span></a>
+        <a href="#compare" class="nav-item" data-page="compare"><span>Compare</span></a>
+    </nav>
+</aside>
+<main class="main-content">
+    <div class="content-wrapper">
+        <section id="page-dashboard" class="page active">
+            <header class="page-header"><div><h2>Dashboard</h2><p class="subtitle">System overview and statistics</p></div><button class="btn-primary" onclick="openImportModal()">Import Data</button></header>
+            <div class="stats-grid">
+                <div class="stat-card"><div class="stat-content"><p class="stat-label">Total Tables</p><p class="stat-value" id="totalTables">0</p></div></div>
+                <div class="stat-card"><div class="stat-content"><p class="stat-label">Total Records</p><p class="stat-value" id="totalRecords">0</p></div></div>
+                <div class="stat-card"><div class="stat-content"><p class="stat-label">Created Reports</p><p class="stat-value" id="totalReports">0</p></div></div>
+                <div class="stat-card"><div class="stat-content"><p class="stat-label">Last Import</p><p class="stat-value" id="lastImport">—</p></div></div>
+            </div>
+            <div class="dashboard-content">
+                <div class="activity-section"><h3>Recent Activity</h3><div class="activity-list" id="activityList"></div></div>
+                <div class="quick-actions"><h3>Quick Actions</h3><div class="action-cards"><button class="action-card" onclick="navigateTo('import')">Import CSV</button><button class="action-card" onclick="navigateTo('charts')">New Chart</button><button class="action-card" onclick="navigateTo('analytics')">Analytics</button></div></div>
+            </div>
+        </section>
+        <section id="page-import" class="page">
+            <header class="page-header"><div><h2>Data Import</h2><p class="subtitle">Upload CSV, XLSX or JSON files with student data</p></div></header>
+            <div class="import-container">
+                <div class="upload-zone" id="uploadZone"><h3>Drag and drop file here</h3><p>or click to select</p><input type="file" id="fileInput" accept=".csv,.xlsx,.json" hidden></div>
+                <div class="import-options">
+                    <h3>Import Parameters</h3>
+                    <div class="form-group"><label>Table Name</label><input type="text" id="tableName" class="form-input"><small>Auto-generated from file name</small></div>
+                    <div class="form-group"><label>Delimiter (for CSV)</label><select id="delimiter" class="form-select"><option value=";">Semicolon (;)</option><option value=",">Comma (,)</option><option value="\t">Tab</option></select></div>
+                    <div class="form-group"><label><input type="checkbox" id="hasHeaders" checked><span>First row contains headers</span></label></div>
+                    <button class="btn-primary btn-large" id="uploadBtn" disabled>Upload</button>
+                </div>
+            </div>
+            <div class="import-progress" id="importProgress" style="display: none;"><div class="progress-header"><h3>Uploading...</h3><span id="progressPercent">0%</span></div><div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div><p id="progressStatus">Preparing...</p></div>
+        </section>
+        <section id="page-tables" class="page">
+            <header class="page-header"><div><h2>Table Management</h2><p class="subtitle">View, edit, and delete tables</p></div><button class="btn-secondary" onclick="refreshTables()">Refresh</button></header>
+            <div class="tables-container"><div class="tables-list" id="tablesList"></div></div>
+        </section>
+        <section id="page-analytics" class="page">
+            <header class="page-header"><div><h2>Data Analytics</h2><p class="subtitle">Column statistics and data quality</p></div><div class="header-actions"><select id="analyticsTable" class="form-select" onchange="loadTableAnalytics(this.value)"><option value="">Select table</option></select></div></header>
+            <div class="analytics-content" id="analyticsContent"></div>
+        </section>
+        <section id="page-charts" class="page">
+            <header class="page-header"><div><h2>Chart Builder</h2><p class="subtitle">Create interactive visualizations with filtering and aggregation</p></div><button class="btn-primary" onclick="saveChart()">Save Chart</button></header>
+            <div class="chart-builder">
+                <div class="builder-sidebar">
+                    <div class="config-section">
+                        <h3>Settings</h3>
+                        <div class="form-group"><label>Table</label><select id="chartTable" class="form-select" onchange="updateChartFields()"></select></div>
+                        <div class="form-group"><label>Chart Type</label><div class="chart-type-grid"><button class="chart-type-btn active" data-type="bar">Bar</button><button class="chart-type-btn" data-type="line">Line</button><button class="chart-type-btn" data-type="pie">Pie</button><button class="chart-type-btn" data-type="doughnut">Doughnut</button></div></div>
+                        <div class="form-group"><label>Group By</label><select id="groupByField" class="form-select" multiple></select></div>
+                        <div class="form-group"><label>Aggregations</label><div id="aggregationsList"></div><button class="btn-secondary btn-small" onclick="addAggregation()">+ Add Aggregation</button></div>
+                        <div class="form-group"><label>Filters</label><div id="filtersList"></div><button class="btn-secondary btn-small" onclick="addFilter()">+ Add Filter</button></div>
+                        <button class="btn-primary btn-large" onclick="buildChart()">Build Chart</button>
+                    </div>
+                </div>
+                <div class="chart-preview"><div class="preview-header"><h3>Preview</h3><div class="preview-actions"><button class="btn-icon" onclick="downloadChart()" title="Download">DL</button><button class="btn-icon" onclick="exportToDocx()" title="Export to DOCX">DOCX</button></div></div><div class="chart-container"><canvas id="previewChart"></canvas></div><div class="chart-insights" id="chartInsights"></div></div>
+            </div>
+        </section>
+        <section id="page-reports" class="page">
+            <header class="page-header"><div><h2>Saved Reports</h2><p class="subtitle">History of created reports and visualizations</p></div><div class="header-actions"><button class="btn-secondary" onclick="filterReports('all', event)">All</button><button class="btn-secondary" onclick="filterReports('charts', event)">Charts</button><button class="btn-secondary" onclick="filterReports('exports', event)">Exports</button></div></header>
+            <div class="reports-grid" id="reportsGrid"></div>
+        </section>
+        <section id="page-compare" class="page">
+            <header class="page-header"><div><h2>Compare Tables</h2><p class="subtitle">Compare structure and data between tables</p></div><button class="btn-primary" onclick="runComparison()">Compare</button></header>
+            <div class="compare-container">
+                <div class="compare-selector"><div class="compare-table"><h3>Table A</h3><select id="compareTableA" class="form-select" onchange="onCompareTableChange()"></select></div><div class="compare-vs">VS</div><div class="compare-table"><h3>Table B</h3><select id="compareTableB" class="form-select" onchange="onCompareTableChange()"></select></div></div>
+                <div id="compareOptions" style="display:none; margin-top: 1.5rem; padding: 1.5rem; background: white; border-radius: 0.75rem; border: 1px solid var(--neutral-200); display: none;">
+                    <h4 style="font-size: 1rem; font-weight: 600; margin-bottom: 1rem; color: var(--neutral-900);">Comparison Settings</h4>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+                        <div class="form-group" style="margin-bottom: 0;"><label>Group By</label><select id="compareGroupBy" class="form-select"></select><small>Common field of both tables</small></div>
+                        <div class="form-group" style="margin-bottom: 0;"><label>Operation</label><select id="compareOperation" class="form-select"><option value="COUNT">COUNT — count</option><option value="SUM">SUM — sum</option><option value="AVG">AVG — average</option><option value="MIN">MIN — min</option><option value="MAX">MAX — max</option></select></div>
+                        <div class="form-group" style="margin-bottom: 0;"><label>Aggregation Field</label><select id="compareField" class="form-select"><option value="*">* (for COUNT)</option></select><small>Ignored for COUNT(*)</small></div>
+                    </div>
+                </div>
+                <div class="comparison-results" id="comparisonResults"><div class="empty-state"><p>Select two tables to compare</p></div></div>
+            </div>
+        </section>
+    </div>
+</main>
+<div id="modal-overlay" class="modal-overlay" onclick="closeModal()"></div>
+<div id="columnDetailsModal" class="modal">
+    <div class="modal-header"><h3>Column Details: <span id="modalColumnName"></span></h3><button class="btn-icon" onclick="closeModal()">X</button></div>
+    <div class="modal-body" id="columnDetailsContent"></div>
+</div>
+<div id="toast-container" class="toast-container"></div>
+<script src="utils.js"></script><script src="app.js"></script><script src="chart-builder.js"></script><script src="analytics.js"></script><script src="advanced.js"></script>
+</body>
+</html>
